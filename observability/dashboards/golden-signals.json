@@ -1,0 +1,145 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "RED Metrics (Rate, Errors, Duration)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "id": 2,
+      "title": "Request Rate (RPS by Service)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(nginx_ingress_controller_requests{namespace=\"prod\"}[1m])) by (service)",
+          "legendFormat": "{{service}} RPS"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "id": 3,
+      "title": "Error Rate (% 5xx Statuses)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(nginx_ingress_controller_requests{namespace=\"prod\", status=~\"5.*\"}[1m])) / sum(rate(nginx_ingress_controller_requests{namespace=\"prod\"}[1m])) * 100",
+          "legendFormat": "HTTP 5xx Error %"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line", "lineInterpolation": "smooth" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "id": 4,
+      "title": "Request Duration (p50, p95, p99 Latency)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=\"prod\"}[1m])) by (le))",
+          "legendFormat": "p50 Latency"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=\"prod\"}[1m])) by (le))",
+          "legendFormat": "p95 Latency"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{namespace=\"prod\"}[1m])) by (le))",
+          "legendFormat": "p99 Latency"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "id": 5,
+      "title": "Saturation & Autoscaling",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line" },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "id": 6,
+      "title": "CPU Saturation (% of Limit)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{namespace=\"prod\", container!=\"\"}[1m])) by (pod) / sum(kube_pod_container_resource_limits{namespace=\"prod\", resource=\"cpu\"}) by (pod) * 100",
+          "legendFormat": "{{pod}} CPU %"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "axisCenteredZero": false, "drawStyle": "line" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "id": 7,
+      "title": "Horizontal Pod Autoscaler: Active vs Desired Replicas",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "kube_deployment_status_replicas_available{namespace=\"prod\"}",
+          "legendFormat": "{{deployment}} Available"
+        },
+        {
+          "expr": "kube_deployment_spec_replicas{namespace=\"prod\"}",
+          "legendFormat": "{{deployment}} Desired"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["sre", "kubernetes", "red-metrics", "golden-signals"],
+  "time": { "from": "now-15m", "to": "now" },
+  "title": "SRE Golden Signals & RED Metrics — CloudNative Store",
+  "uid": "sre-golden-signals"
+}
