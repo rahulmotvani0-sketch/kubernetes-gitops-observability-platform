@@ -55,3 +55,15 @@ This script is designed for senior DevOps / Platform Engineer / SRE interviews (
    ```
 2. **Talking Point:**
    > "Now let's simulate an infrastructure failure. I forcefully terminate an active backend pod. Kubernetes immediately reschedules a replacement container within 2 seconds. If an engineer were to manually delete or tamper with the Deployment manifest in the cluster, ArgoCD detects the out-of-sync drift against Git and restores the desired state immediately. This gives us complete zero-downtime resilience."
+
+---
+
+### Minute 5:00 – 5:30: Bonus — Distributed Log Exploration in Loki (LogQL)
+1. **Action:** Switch to Grafana Explore tab (`http://localhost:30000/explore`) and select **Loki** as the datasource.
+2. **Action:** Run query `{namespace="prod", app="store-backend-api"} |= "error"` or run:
+   ```bash
+   make loki
+   ```
+3. **Talking Point:**
+   > "Finally, metrics only tell you THAT something failed; logs tell you WHY. We run Promtail as a DaemonSet streaming all container output across our 3 Kind nodes into Grafana Loki. In a single pane of glass, our engineers can jump directly from a Prometheus error spike to the exact stack traces in Loki using LogQL queries, slashing Mean Time to Resolution (MTTR)."
+

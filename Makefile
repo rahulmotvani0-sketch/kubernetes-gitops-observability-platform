@@ -1,12 +1,13 @@
-.PHONY: help up down status chaos port-forward logs clean
+.PHONY: help up down status chaos port-forward logs clean loki
 
 help:
 	@echo "Kubernetes GitOps & Observability Platform — Developer CLI"
 	@echo "=========================================================="
-	@echo "  make up            Bootstrap 3-node Kind cluster, Ingress, ArgoCD & Prometheus"
+	@echo "  make up            Bootstrap 3-node Kind cluster, Ingress, ArgoCD & Prometheus/Loki"
 	@echo "  make down          Teardown and destroy the local cluster"
 	@echo "  make status        View all running pods, nodes, and GitOps applications"
 	@echo "  make chaos         Run interactive SRE chaos demonstrations"
+	@echo "  make loki          Run Loki distributed log aggregation verification"
 	@echo "  make port-forward  Expose ArgoCD (8080) and Grafana (3000) locally"
 	@echo "  make clean         Remove local kubeconfig and temporary logs"
 
@@ -28,6 +29,9 @@ status:
 
 chaos:
 	./scripts/simulate_chaos.sh
+
+loki:
+	./scripts/simulate_chaos.sh loki
 
 port-forward:
 	@echo "Starting background port-forwards..."

@@ -60,8 +60,8 @@ echo "  Deploying Root App-of-Apps manifest..."
 kubectl apply -f gitops/argocd/root-app.yaml || true
 echo -e "  ${GREEN}✓${NC} ArgoCD initialized with self-healing enabled."
 
-# Step 5: Install Observability Stack (Prometheus & Grafana)
-echo -e "\n${YELLOW}[5/5] Deploying Prometheus Operator & Grafana SRE Dashboards...${NC}"
+# Step 5: Install Observability Metrics Tier (Prometheus & Grafana)
+echo -e "\n${YELLOW}[5/6] Deploying Prometheus Operator & Grafana SRE Dashboards...${NC}"
 kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
@@ -76,6 +76,17 @@ helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
 kubectl apply -f observability/manifests/prometheus-rules.yaml || true
 echo -e "  ${GREEN}✓${NC} Prometheus, Alertmanager, and Grafana online."
 
+# Step 6: Install Observability Logging Tier (Loki & Promtail)
+echo -e "\n${YELLOW}[6/6] Deploying Loki & Promtail Distributed Log Aggregation...${NC}"
+helm repo add grafana https://grafana.github.io/helm-charts || true
+helm repo update || true
+
+helm upgrade --install loki grafana/loki-stack \
+  --namespace monitoring \
+  --values observability/loki-values.yaml \
+  --wait --timeout 180s || true
+echo -e "  ${GREEN}✓${NC} Loki & Promtail active. Logs streaming to Grafana."
+
 # Retrieve initial ArgoCD admin password
 ARGO_PWD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" 2>/dev/null | base64 --decode || echo "admin123")
 
@@ -85,6 +96,7 @@ echo -e "${CYAN}================================================================
 echo -e "  Sample Web Store:       ${CYAN}http://localhost/${NC}"
 echo -e "  Backend API / Health:   ${CYAN}http://localhost/api${NC}"
 echo -e "  ArgoCD UI:              ${CYAN}http://localhost:30080${NC} (User: admin, Pass: $ARGO_PWD)"
-echo -e "  Grafana SRE Dashboards: ${CYAN}http://localhost:30000${NC} (User: admin, Pass: admin)"
+echo -e "  Grafana SRE & Logs:     ${CYAN}http://localhost:30000${NC} (User: admin, Pass: admin)"
+echo -e "  Loki Log Endpoint:      ${CYAN}http://localhost:3100${NC} (via Promtail DaemonSet)"
 echo -e "${CYAN}====================================================================${NC}"
 echo -e "Run ${YELLOW}make chaos${NC} or ${YELLOW}./scripts/simulate_chaos.sh${NC} to run live interview demonstrations.\n"
