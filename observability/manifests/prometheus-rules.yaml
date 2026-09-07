@@ -1,0 +1,69 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: platform-sre-alerts
+  namespace: monitoring
+  labels:
+    role: alert-rules
+    release: prometheus
+spec:
+  groups:
+    - name: platform.sre.rules
+      rules:
+        # Alert 1: High HTTP 5XX Error Rate
+        - alert: HighHttpErrorRate
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{status=~"5.*"}[2m])) 
+            / 
+            sum(rate(nginx_ingress_controller_requests[2m])) * 100 > 5
+          for: 1m
+          labels:
+            severity: critical
+            tier: application
+          annotations:
+            summary: "High HTTP 5xx error rate detected (instance {{ $labels.instance }})"
+            description: "HTTP 5xx error rate has exceeded 5% for the last 2 minutes (current value: {{ $value }}%)."
+            runbook_url: "https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform/blob/main/docs/SRE_RUNBOOK.md#highhttperrorrate"
+
+        # Alert 2: Pod CrashLooping
+        - alert: PodCrashLooping
+          expr: |
+            rate(kube_pod_container_status_restarts_total[5m]) * 60 > 2
+          for: 2m
+          labels:
+            severity: warning
+            tier: platform
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash looping"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} restarted {{ $value }} times within 5 minutes."
+            runbook_url: "https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform/blob/main/docs/SRE_RUNBOOK.md#podcrashlooping"
+
+        # Alert 3: High Container Memory Saturation
+        - alert: HighMemorySaturation
+          expr: |
+            sum(container_memory_working_set_bytes{container!=""}) by (namespace, pod) 
+            / 
+            sum(kube_pod_container_resource_limits{resource="memory"}) by (namespace, pod) * 100 > 85
+          for: 3m
+          labels:
+            severity: warning
+            tier: infrastructure
+          annotations:
+            summary: "Pod {{ $labels.pod }} memory saturation > 85%"
+            description: "Pod {{ $labels.pod }} is utilizing {{ $value }}% of its configured memory limit."
+            runbook_url: "https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform/blob/main/docs/SRE_RUNBOOK.md#highmemorysaturation"
+
+        # Alert 4: Deployment Replica Mismatch
+        - alert: DeploymentReplicaMismatch
+          expr: |
+            kube_deployment_status_replicas_available{namespace="prod"} 
+            != 
+            kube_deployment_spec_replicas{namespace="prod"}
+          for: 3m
+          labels:
+            severity: warning
+            tier: workload
+          annotations:
+            summary: "Deployment {{ $labels.deployment }} replica mismatch"
+            description: "Available replicas do not match desired spec for {{ $labels.deployment }}."
+            runbook_url: "https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform/blob/main/docs/SRE_RUNBOOK.md#deploymentreplicamismatch"
