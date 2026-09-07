@@ -1,0 +1,45 @@
+# 3-Node Kubernetes Cluster Configuration (Kind)
+# 1 Control-Plane Node + 2 Worker Nodes with Ingress & Observability Port Mappings
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: k8s-platform
+
+nodes:
+  # Control Plane Node
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # NGINX Ingress Controller HTTP
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      # NGINX Ingress Controller HTTPS
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+      # ArgoCD Server UI NodePort
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      # Grafana Observability Dashboards NodePort
+      - containerPort: 30000
+        hostPort: 30000
+        protocol: TCP
+
+  # Worker Node 01 (Workload Tier)
+  - role: worker
+    labels:
+      tier: application
+      topology.kubernetes.io/zone: local-zone-a
+
+  # Worker Node 02 (Observability & Cache Tier)
+  - role: worker
+    labels:
+      tier: infrastructure
+      topology.kubernetes.io/zone: local-zone-b
