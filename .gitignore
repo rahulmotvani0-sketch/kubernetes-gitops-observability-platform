@@ -1,0 +1,16 @@
+# Kubernetes & Cluster Artifacts
+kubeconfig
+*.kubeconfig
+.kube/
+*.log
+
+# Helm & Local Packages
+*.tgz
+charts/
+
+# OS & Editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
