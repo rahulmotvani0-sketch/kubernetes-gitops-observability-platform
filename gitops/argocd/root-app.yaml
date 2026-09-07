@@ -1,0 +1,26 @@
+# ArgoCD Root Application (App-of-Apps Pattern)
+# Declaratively provisions and tracks all platform workloads and observability suites
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-platform-apps
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform.git
+    targetRevision: HEAD
+    path: gitops/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true # Automatically reconciles manual drift or killed resources!
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

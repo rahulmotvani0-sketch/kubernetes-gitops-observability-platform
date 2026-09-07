@@ -1,0 +1,23 @@
+# ArgoCD Child Application: Multi-Service Cloud-Native Store
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloudnative-store
+  namespace: argocd
+  labels:
+    tier: application
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform.git
+    targetRevision: HEAD
+    path: gitops/manifests/app
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

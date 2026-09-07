@@ -1,0 +1,23 @@
+# ArgoCD Child Application: Prometheus & Grafana SRE Observability Stack
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: platform-observability
+  namespace: argocd
+  labels:
+    tier: monitoring
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/rahulmotvani0-sketch/kubernetes-gitops-observability-platform.git
+    targetRevision: HEAD
+    path: observability/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
