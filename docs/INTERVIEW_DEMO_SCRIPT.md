@@ -4,7 +4,7 @@
 ---
 
 ## 🎯 Purpose
-This script is designed for senior DevOps / Platform Engineer / SRE interviews (e.g. micro1). In just 5 minutes on a live screen-share, you can demonstrate real mastery of **Kubernetes multi-node topology, GitOps with ArgoCD, SRE RED metrics in Grafana, and automated chaos self-healing**.
+This script is designed for DevOps / Platform Engineer / SRE interviews. In just 5 minutes on a live screen-share, you can demonstrate real mastery of **Kubernetes multi-node topology, GitOps with ArgoCD, SRE RED metrics in Grafana, and automated chaos self-healing**.
 
 ---
 
